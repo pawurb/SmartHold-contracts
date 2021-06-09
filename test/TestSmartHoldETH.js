@@ -1,17 +1,13 @@
 const Web3 = require("web3");
-const timeMachine = require('ganache-time-traveler');
 
 const {
-  expectRevert
+  expectRevert,
+  time
 } = require('@openzeppelin/test-helpers');
 
 const SmartHoldETH = artifacts.require("SmartHoldETH");
 const PriceFeedMock = artifacts.require("PriceFeedMock");
 const BuggyPriceFeedMock = artifacts.require("BuggyPriceFeedMock");
-
-const advanceByDays = async (days) => {
-  await timeMachine.advanceTimeAndBlock(days * 86400);
-};
 
 contract("SmartHoldETH", async (accounts) => {
   const owner = accounts[0];
@@ -99,15 +95,6 @@ contract("SmartHoldETH", async (accounts) => {
   });
 
   describe("'withdraw'", async () => {
-    beforeEach(async() => {
-      let snapshot = await timeMachine.takeSnapshot();
-      snapshotId = snapshot['result'];
-    });
-
-    afterEach(async() => {
-      await timeMachine.revertToSnapshot(snapshotId);
-    });
-
     it("can only be called by the deposit contract owner", async () => {
       await expectRevert(
         deposit.withdraw({from: notOwner})
@@ -131,7 +118,7 @@ contract("SmartHoldETH", async (accounts) => {
     it("required time has already passed, it withdraws funds", async () => {
       const canWithdrawBefore = await deposit.canWithdraw({from: owner});
       assert.equal(canWithdrawBefore, false);
-      await advanceByDays(lockForDays + 1);
+      await time.increase(time.duration.days(lockForDays + 1));
 
       const canWithdrawAfter = await deposit.canWithdraw({from: owner});
       assert.equal(canWithdrawAfter, true);
@@ -222,7 +209,7 @@ contract("SmartHoldETH", async (accounts) => {
         });
 
         it("it withdraws funds", async () => {
-          await advanceByDays(lockForDays + 1);
+          await time.increase(time.duration.days(lockForDays + 1));
           const canWithdraw = await deposit.canWithdraw({from: owner});
           assert.equal(canWithdraw, true);
         });

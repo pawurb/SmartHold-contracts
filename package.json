@@ -21,7 +21,6 @@
   "homepage": "https://github.com/pawurb/SmartHold-contracts#readme",
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.11",
-    "ganache-time-traveler": "^1.0.15",
     "truffle": "^5.3.9"
   }
 }
